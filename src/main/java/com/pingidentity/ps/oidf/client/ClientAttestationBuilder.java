@@ -20,6 +20,7 @@ public final class ClientAttestationBuilder {
     static final String TYP = "oauth-client-attestation+jwt";
 
     private final SigningKeyPair attesterKey;
+    private final JwsSigner attesterSigner;
     private final String issuer;
     private String clientId;
     private Map<String, Object> confirmationJwk;
@@ -35,6 +36,18 @@ public final class ClientAttestationBuilder {
      */
     public ClientAttestationBuilder(SigningKeyPair attesterKey, String issuer) {
         this.attesterKey = Objects.requireNonNull(attesterKey, "attesterKey");
+        this.attesterSigner = null;
+        this.issuer = requireText(issuer, "issuer");
+    }
+
+    /**
+     * As {@link #ClientAttestationBuilder(SigningKeyPair, String)}, but signing through an external
+     * {@link JwsSigner} (e.g. {@link OpenBaoTransitSigner}) so the attester's private key never enters
+     * this JVM.
+     */
+    public ClientAttestationBuilder(JwsSigner attesterSigner, String issuer) {
+        this.attesterKey = null;
+        this.attesterSigner = Objects.requireNonNull(attesterSigner, "attesterSigner");
         this.issuer = requireText(issuer, "issuer");
     }
 
@@ -104,7 +117,9 @@ public final class ClientAttestationBuilder {
         if (this.workload != null && !this.workload.isEmpty()) {
             claims.setClaim("workload", this.workload);
         }
-        return Jws.sign(claims.toJson(), this.attesterKey, TYP, false);
+        return this.attesterSigner != null
+                ? Jws.sign(claims.toJson(), this.attesterSigner, TYP)
+                : Jws.sign(claims.toJson(), this.attesterKey, TYP, false);
     }
 
     private Instant resolveExpiry(Instant iat) {

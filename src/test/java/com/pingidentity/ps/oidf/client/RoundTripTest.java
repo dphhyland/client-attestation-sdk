@@ -3,8 +3,8 @@ package com.pingidentity.ps.oidf.client;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import com.pingidentity.ps.oidf.common.AttestationChallengeService;
-import com.pingidentity.ps.oidf.common.AttestationReplayCache;
+import com.pingidentity.ps.oidf.common.InMemoryAttestationChallengeService;
+import com.pingidentity.ps.oidf.common.InMemoryAttestationReplayCache;
 import com.pingidentity.ps.oidf.common.ClientAttestationConfig;
 import com.pingidentity.ps.oidf.common.ClientAttestationResult;
 import com.pingidentity.ps.oidf.common.ClientAttestationVerifier;
@@ -33,7 +33,7 @@ class RoundTripTest {
                 .addAcceptedAudience(AUDIENCE)
                 .expectedHtu(TOKEN_ENDPOINT)
                 .build();
-        return new ClientAttestationVerifier(resolver, config, new AttestationReplayCache(), new AttestationChallengeService());
+        return new ClientAttestationVerifier(resolver, config, new InMemoryAttestationReplayCache(), new InMemoryAttestationChallengeService());
     }
 
     private String attestation(SigningKeyPair attesterKey, SigningKeyPair instanceKey) {
